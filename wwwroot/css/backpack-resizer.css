@@ -1,0 +1,49 @@
+/* Styles for BackpackResizerPage.razor. Served from this mod's wwwroot at
+   /BackpackResizer/css/backpack-resizer.css (see IModBlazorMetadata.WWWRootUrl in
+   ModMetadata.cs - left null, so the server falls back to the assembly name). Kept as a plain
+   wwwroot file rather than Blazor's scoped .razor.css: this project builds with
+   StaticWebAssetsEnabled=false in Release (see the .csproj), which disables the static-web-assets
+   pipeline that scoped component CSS bundling depends on, but not this mod-specific wwwroot
+   serving path - that's a plain build-time file copy (see the wwwroot ItemGroup in the .csproj). */
+
+.bgr-page { background: #16181c; color: #e8e8ea; padding: 0.5rem; border-radius: 8px; }
+.bgr-header { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.75rem 1rem; margin: -0.5rem -0.5rem 1rem; background: #16181c; color: inherit; border-bottom: 1px solid rgba(255,255,255,0.1); box-shadow: 0 1px 4px rgba(0,0,0,0.25); }
+.bgr-header h3 { margin: 0; color: inherit; }
+.bgr-header-actions { display: flex; align-items: center; gap: 0.75rem; }
+.bgr-toolbar { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.bgr-filter { flex: 1 1 260px; max-width: 340px; padding: 0.35rem 0.6rem; }
+.bgr-preset-select { padding: 0.35rem 0.6rem; }
+.bgr-load-preset-btn { padding: 0.35rem 0.7rem; cursor: pointer; }
+.bgr-btn-white { background: #ffffff; color: #1a1a1a; border: 1px solid rgba(128,128,128,0.5); border-radius: 4px; font-weight: 600; }
+.bgr-btn-white:hover:not(:disabled) { background: #eaeaea; }
+.bgr-btn-blue { background: #1565c0; color: white; border: 1px solid transparent; border-radius: 4px; font-weight: 600; }
+.bgr-btn-blue:hover:not(:disabled) { background: #114e94; }
+/* Starts at 1 column on a narrow window, widens to 2 then 3 as the window has room - keeps card
+   width from ballooning out (and the name/badges from drifting far from the expanded controls)
+   on an ultrawide or fullscreened monitor. */
+.bgr-card-grid { display: grid; grid-template-columns: 1fr; align-items: start; gap: 0.6rem; }
+@media (min-width: 900px) { .bgr-card-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1400px) { .bgr-card-grid { grid-template-columns: repeat(3, 1fr); } }
+.bgr-card { border: 1px solid rgba(128,128,128,0.35); border-radius: 6px; overflow: hidden; }
+.bgr-card-header { display: flex; align-items: center; gap: 0.6rem; width: 100%; padding: 0.6rem 0.9rem; background: rgba(128,128,128,0.08); border: none; cursor: pointer; text-align: left; font-size: 1rem; }
+.bgr-card-header:hover { background: rgba(128,128,128,0.16); }
+.bgr-chevron { display: inline-block; transition: transform 0.15s ease; width: 1em; }
+.bgr-chevron.open { transform: rotate(90deg); }
+.bgr-name { font-weight: 600; flex: 1 1 auto; }
+.bgr-section-heading { margin: 1.2rem 0 0.6rem; }
+.bgr-section-heading:first-of-type { margin-top: 0; }
+.bgr-page-note { background: #ffcc00; color: #1a1a1a; border-radius: 6px; padding: 0.6rem 0.9rem; margin-bottom: 1rem; font-size: 0.9rem; }
+.bgr-override-note label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 600; }
+.bgr-card-body { padding: 0.75rem 0.9rem 0.9rem; }
+.bgr-grid-table { width: 100%; border-collapse: collapse; }
+.bgr-grid-table th, .bgr-grid-table td { padding: 0.3rem 0.5rem; text-align: left; vertical-align: middle; }
+.bgr-grid-table thead th { border-bottom: 1px solid rgba(128,128,128,0.35); font-weight: 600; opacity: 0.8; }
+.bgr-grid-table tbody tr:not(:last-child) { border-bottom: 1px solid rgba(128,128,128,0.15); }
+.bgr-size-input { width: 4.5em; }
+/* The "Unconfigurable Backpacks" list - just a name, no dropdown, since there's nothing to expand
+   into (their grids can never be edited). */
+.bgr-pill-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.bgr-pill { background: rgba(128,128,128,0.12); border: 1px solid rgba(128,128,128,0.3); border-radius: 999px; padding: 0.3rem 0.8rem; font-size: 0.9rem; }
+.bgr-status { opacity: 0.8; font-size: 0.85rem; }
+.bgr-save-btn { background: #2e7d32; color: white; border: none; border-radius: 4px; padding: 0.5rem 1.1rem; font-size: 0.95rem; font-weight: 600; cursor: pointer; }
+.bgr-save-btn:hover { background: #276229; }

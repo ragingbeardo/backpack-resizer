@@ -1,0 +1,69 @@
+@namespace BackpackResizer.Pages.Components
+@using BackpackResizer.Config
+
+<div class="bgr-card">
+    <button type="button" class="bgr-card-header" @onclick="ToggleExpanded">
+        <span class="bgr-chevron @(IsOpen ? "open" : "")">▶</span>
+        <span class="bgr-name">@Backpack.BackpackName</span>
+    </button>
+
+    @if (IsOpen && Backpack.Grid is { } grid)
+    {
+        <div class="bgr-card-body">
+            <table class="bgr-grid-table">
+                <thead>
+                    <tr>
+                        <th>Width</th>
+                        <th>Height</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input class="bgr-size-input" type="number" min="1" @bind="grid.Width" @bind:after="() => OnWidthCommitted(grid)" /></td>
+                        <td><input class="bgr-size-input" type="number" min="1" @bind="grid.Height" @bind:after="() => OnHeightCommitted(grid)" /></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    [Inject] private IJSRuntime Js { get; set; } = null!;
+
+    [Parameter, EditorRequired] public BackpackConfig Backpack { get; set; } = null!;
+
+    [Parameter] public bool IsOpen { get; set; }
+
+    [Parameter] public EventCallback OnToggle { get; set; }
+
+    [Parameter] public int SoftWidthLimit { get; set; }
+
+    [Parameter] public int SoftHeightLimit { get; set; }
+
+    [Parameter] public bool BypassSoftCapSizeLimits { get; set; }
+
+    private Task ToggleExpanded() => OnToggle.InvokeAsync();
+
+    private async Task OnWidthCommitted(BackpackGrid backpackGrid)
+    {
+        if (backpackGrid.Width <= SoftWidthLimit || BypassSoftCapSizeLimits)
+        {
+            return;
+        }
+
+        await Js.InvokeVoidAsync("alert", "Check the box in the yellow note at the top of the page to use higher values.");
+        backpackGrid.Width = SoftWidthLimit;
+    }
+
+    private async Task OnHeightCommitted(BackpackGrid backpackGrid)
+    {
+        if (backpackGrid.Height <= SoftHeightLimit || BypassSoftCapSizeLimits)
+        {
+            return;
+        }
+
+        await Js.InvokeVoidAsync("alert", "Check the box in the yellow note at the top of the page to use higher values.");
+        backpackGrid.Height = SoftHeightLimit;
+    }
+}

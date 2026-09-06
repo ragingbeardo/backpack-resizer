@@ -1,0 +1,85 @@
+@using BackpackResizer.Config
+@using BackpackResizer
+@using BackpackResizer.Pages.Components
+@page "/backpackresizer"
+@namespace BackpackResizer.Pages
+@inject ModConfig Config
+@inject BackpackResizerMod ResizerMod
+@* ReSharper disable once InconsistentNaming *@
+@inject IJSRuntime JS
+
+<link rel="stylesheet" href="/@ModMetadata.WebRootUrl/css/backpack-resizer.css" />
+<script src="/@ModMetadata.WebRootUrl/js/backpack-resizer.js"></script>
+
+<div class="bgr-page">
+    <div class="bgr-header">
+        <h3>Backpack Resizer</h3>
+        <div class="bgr-header-actions">
+            @if (_statusMessage is not null)
+            {
+                <span class="bgr-status">@_statusMessage</span>
+            }
+            @if (HasUnsavedChanges)
+            {
+                <button class="bgr-save-btn" @onclick="SaveAsync">Save Config Changes</button>
+            }
+        </div>
+    </div>
+
+    <PresetToolbar Config="Config" @bind-FilterText="_filterText" OnStatusMessage="msg => _statusMessage = msg" />
+
+    <div class="bgr-page-note bgr-override-note">
+        <label>
+            <input type="checkbox" @bind="Config.BypassSoftCapSizeLimits" />
+            I accept I might break my UI going over @SoftWidthLimit width or @SoftHeightLimit height.
+        </label>
+    </div>
+
+    @if (Config.Backpacks.Count == 0)
+    {
+        <p><em>No backpacks discovered yet. This list is populated once the server has finished loading the item database.</em></p>
+    }
+    else
+    {
+        var resizable = FilteredBackpacks().Where(b => !b.IsMultiPocket).ToList();
+        var unconfigurable = FilteredBackpacks().Where(b => b.IsMultiPocket).ToList();
+
+        <h4 class="bgr-section-heading">Resizable Backpacks (@resizable.Count)</h4>
+        @if (resizable.Count == 0)
+        {
+            <p><em>No resizable backpacks match the current filter.</em></p>
+        }
+        else
+        {
+            <div class="bgr-card-grid">
+            @foreach (var backpack in resizable)
+            {
+                var key = BackpackDictionaryKey(backpack);
+
+                <BackpackCard Backpack="backpack"
+                              IsOpen="_expandedBackpacks.Contains(key)"
+                              OnToggle="() => ToggleExpanded(key)"
+                              SoftWidthLimit="SoftWidthLimit"
+                              SoftHeightLimit="SoftHeightLimit"
+                              BypassSoftCapSizeLimits="Config.BypassSoftCapSizeLimits" />
+            }
+            </div>
+        }
+
+        @if (unconfigurable.Count > 0)
+        {
+            <h4 class="bgr-section-heading">Unconfigurable Backpacks</h4>
+            <div class="bgr-page-note">
+                These backpacks have multiple separate "pockets" that can't be altered cleanly, so
+                these aren't resizable and are just here to note their existence.
+            </div>
+            <div class="bgr-pill-list">
+                @foreach (var backpack in unconfigurable)
+                {
+                    <span class="bgr-pill">@backpack.BackpackName</span>
+                }
+            </div>
+        }
+    }
+
+</div>

@@ -1,0 +1,128 @@
+@namespace BackpackResizer.Pages.Components
+@using BackpackResizer.Config
+@using BackpackResizer.Utility
+@using SPTarkov.Common.Models.Logging
+@inject ISptLogger<PresetToolbar> Logger
+
+<div class="bgr-toolbar">
+    <label>
+        <input type="checkbox" @bind="Config.ModEnabled" />
+        Mod Enabled
+    </label>
+    <label>
+        <input type="checkbox" @bind="Config.DebugLogging" />
+        Debug Logging
+    </label>
+    <input class="bgr-filter" type="text" placeholder="Filter backpacks..." value="@FilterText" @oninput="OnFilterInput" />
+    <select class="bgr-preset-select" @bind="_selectedPresetKey">
+        <option value="">Select a preset...</option>
+        @foreach (var (presetKey, preset) in Config.Presets)
+        {
+            <option value="@presetKey">@preset.Name</option>
+        }
+    </select>
+    <button type="button" class="bgr-load-preset-btn bgr-btn-white" disabled="@string.IsNullOrEmpty(_selectedPresetKey)" @onclick="LoadSelectedPreset">Load Preset Values</button>
+
+    @if (_showSavePresetForm)
+    {
+        <input class="bgr-filter" type="text" placeholder="New preset name..." @bind="_newPresetName" @bind:event="oninput" />
+        <button type="button" class="bgr-load-preset-btn" disabled="@string.IsNullOrWhiteSpace(_newPresetName)" @onclick="SaveAsNewPreset">Create</button>
+        <button type="button" class="bgr-load-preset-btn" @onclick="CancelSavePreset">Cancel</button>
+    }
+    else
+    {
+        <button type="button" class="bgr-load-preset-btn bgr-btn-blue" @onclick="() => _showSavePresetForm = true">Save New Preset</button>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public ModConfig Config { get; set; } = null!;
+
+    [Parameter] public string FilterText { get; set; } = "";
+
+    [Parameter] public EventCallback<string> FilterTextChanged { get; set; }
+
+    [Parameter] public EventCallback<string> OnStatusMessage { get; set; }
+
+    private string _selectedPresetKey = "";
+    private bool _showSavePresetForm;
+    private string _newPresetName = "";
+
+    private ColorLogger<PresetToolbar>? _log;
+
+    protected override void OnInitialized() => _log = new ColorLogger<PresetToolbar>(Logger, Config);
+
+    private Task OnFilterInput(ChangeEventArgs e) => FilterTextChanged.InvokeAsync(e.Value?.ToString() ?? "");
+
+    private async Task LoadSelectedPreset()
+    {
+        if (string.IsNullOrEmpty(_selectedPresetKey) || !Config.Presets.TryGetValue(_selectedPresetKey, out var preset))
+        {
+            return;
+        }
+
+        var appliedCount = 0;
+
+        foreach (var (backpackKey, backpackOverride) in Config.Backpacks)
+        {
+            if (backpackOverride.Grid is not { } gridOverride)
+            {
+                continue;
+            }
+
+            if (!preset.Backpacks.TryGetValue(backpackKey, out var size))
+            {
+                _log!.Debug($"preset '{preset.Name}' has no entry for '{backpackOverride.BackpackName}' ({backpackKey}) - left at its current size.");
+                continue;
+            }
+
+            gridOverride.Width = size.Width;
+            gridOverride.Height = size.Height;
+            appliedCount++;
+        }
+
+        foreach (var backpackKey in preset.Backpacks.Keys)
+        {
+            if (!Config.Backpacks.ContainsKey(backpackKey))
+            {
+                _log!.Debug($"preset '{preset.Name}' has an entry ({backpackKey}) that doesn't match any backpack on this install - skipped.");
+            }
+        }
+
+        await OnStatusMessage.InvokeAsync($"Loaded preset '{preset.Name}' onto {appliedCount} backpack(s) - click Save to apply.");
+    }
+
+    private async Task SaveAsNewPreset()
+    {
+        var name = _newPresetName.Trim();
+        if (name.Length == 0)
+        {
+            return;
+        }
+
+        var preset = new Preset { Name = name };
+
+        foreach (var (backpackKey, backpackOverride) in Config.Backpacks)
+        {
+            if (backpackOverride.Grid is not { } gridOverride)
+            {
+                continue;
+            }
+
+            preset.Backpacks[backpackKey] = new BackpackGridPreset { Width = gridOverride.Width, Height = gridOverride.Height };
+        }
+
+        var presetKey = $"preset-{Guid.NewGuid():N}";
+        Config.Presets[presetKey] = preset;
+        _selectedPresetKey = presetKey;
+
+        CancelSavePreset();
+        await OnStatusMessage.InvokeAsync($"Created preset '{name}' from the current values - click Save to persist it.");
+    }
+
+    private void CancelSavePreset()
+    {
+        _showSavePresetForm = false;
+        _newPresetName = "";
+    }
+}

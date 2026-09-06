@@ -1,0 +1,72 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>BackpackResizer</RootNamespace>
+    <AssemblyName>BackpackResizer</AssemblyName>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OutputType>Library</OutputType>
+
+    <!-- Set these to match your ModMetaData, this ensures the pathing, zip, and assembly version -->
+    <ModAuthor>RagingBeardo</ModAuthor>
+    <Version>1.0.0</Version>
+
+    <!-- The two lines below will set the output path for the binaries -->
+    <OutputPath>bin\$(Configuration)\$(ProjectName)\$(AssemblyName)\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SPTushonka.Common" Version="4.1.5" />
+    <PackageReference Include="SPTushonka.DI" Version="4.1.5" />
+    <PackageReference Include="SPTushonka.Server.Core" Version="4.1.5" />
+    <PackageReference Include="SPTushonka.Server.Web" Version="4.1.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Static files for this mod's web page (see IModBlazorMetadata.WWWRootUrl in
+         ModMetadata.cs), served by the server under /BackpackResizer/. A plain build-time
+         copy - not routed through the ASP.NET Core "static web assets"/Razor Class Library
+         bundling pipeline, which StaticWebAssetsEnabled=false below disables (that pipeline is
+         also what Blazor's scoped .razor.css component styles depend on, so those aren't usable
+         in this project; wwwroot files are unaffected). -->
+    <None Include="wwwroot\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>None</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
+  </PropertyGroup>
+
+  <Target Name="ZipRelease" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
+    <PropertyGroup>
+      <ReleaseDirectory>$(MSBuildProjectDirectory)\ReleaseZip\</ReleaseDirectory>
+      <ZipOutput>$(ReleaseDirectory)$(ModAuthor)-$(AssemblyName)-$(Version).zip</ZipOutput>
+      <ZipTempDir>$(IntermediateOutputPath)ReleaseZip\</ZipTempDir>
+    </PropertyGroup>
+
+    <!-- Create release directory -->
+    <MakeDir Directories="$(ReleaseDirectory)" />
+
+    <!-- Clean and create the temporary folder structure -->
+    <RemoveDir Directories="$(ZipTempDir)" />
+    <MakeDir Directories="$(ZipTempDir)SPT_Runtime\user\mods\$(ModAuthor)-$(AssemblyName)" />
+
+    <!-- Copy the release DLL into the correct SPT folder -->
+    <ItemGroup>
+      <ReleaseFiles Include="$(TargetDir)**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ReleaseFiles)" DestinationFiles="@(ReleaseFiles->'$(ZipTempDir)SPT_Runtime\user\mods\$(ModAuthor)-$(AssemblyName)\%(RecursiveDir)%(Filename)%(Extension)')" />
+
+    <!-- Create the ZIP -->
+    <ZipDirectory SourceDirectory="$(ZipTempDir)" DestinationFile="$(ZipOutput)" Overwrite="true" />
+
+    <Message Importance="High" Text="Created release zip: $(ZipOutput)" />
+  </Target>
+
+</Project>
