@@ -42,28 +42,30 @@
     [Parameter] public int SoftHeightLimit { get; set; }
 
     [Parameter] public bool BypassSoftCapSizeLimits { get; set; }
+    
+    [Parameter] public EventCallback OnGridChanged { get; set; }
 
     private Task ToggleExpanded() => OnToggle.InvokeAsync();
 
     private async Task OnWidthCommitted(BackpackGrid backpackGrid)
     {
-        if (backpackGrid.Width <= SoftWidthLimit || BypassSoftCapSizeLimits)
+        if (backpackGrid.Width > SoftWidthLimit && !BypassSoftCapSizeLimits)
         {
-            return;
+            await Js.InvokeVoidAsync("alert", "Check the box in the yellow note at the top of the page to use higher values.");
+            backpackGrid.Width = SoftWidthLimit;
         }
 
-        await Js.InvokeVoidAsync("alert", "Check the box in the yellow note at the top of the page to use higher values.");
-        backpackGrid.Width = SoftWidthLimit;
+        await OnGridChanged.InvokeAsync();
     }
 
     private async Task OnHeightCommitted(BackpackGrid backpackGrid)
     {
-        if (backpackGrid.Height <= SoftHeightLimit || BypassSoftCapSizeLimits)
+        if (backpackGrid.Height > SoftHeightLimit && !BypassSoftCapSizeLimits)
         {
-            return;
+            await Js.InvokeVoidAsync("alert", "Check the box in the yellow note at the top of the page to use higher values.");
+            backpackGrid.Height = SoftHeightLimit;
         }
 
-        await Js.InvokeVoidAsync("alert", "Check the box in the yellow note at the top of the page to use higher values.");
-        backpackGrid.Height = SoftHeightLimit;
+        await OnGridChanged.InvokeAsync();
     }
 }

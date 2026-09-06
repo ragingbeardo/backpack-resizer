@@ -6,11 +6,11 @@
 
 <div class="bgr-toolbar">
     <label>
-        <input type="checkbox" @bind="Config.ModEnabled" />
+        <input type="checkbox" @bind="Config.ModEnabled" @bind:after="OnConfigChanged.InvokeAsync" />
         Mod Enabled
     </label>
     <label>
-        <input type="checkbox" @bind="Config.DebugLogging" />
+        <input type="checkbox" @bind="Config.DebugLogging" @bind:after="OnConfigChanged.InvokeAsync" />
         Debug Logging
     </label>
     <input class="bgr-filter" type="text" placeholder="Filter backpacks..." value="@FilterText" @oninput="OnFilterInput" />
@@ -43,6 +43,8 @@
     [Parameter] public EventCallback<string> FilterTextChanged { get; set; }
 
     [Parameter] public EventCallback<string> OnStatusMessage { get; set; }
+    
+    [Parameter] public EventCallback OnConfigChanged { get; set; }
 
     private string _selectedPresetKey = "";
     private bool _showSavePresetForm;

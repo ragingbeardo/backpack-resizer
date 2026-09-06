@@ -26,7 +26,7 @@
         </div>
     </div>
 
-    <PresetToolbar Config="Config" @bind-FilterText="_filterText" OnStatusMessage="msg => _statusMessage = msg" />
+    <PresetToolbar Config="Config" @bind-FilterText="_filterText" OnStatusMessage="msg => _statusMessage = msg" OnConfigChanged="StateHasChanged" />
 
     <div class="bgr-page-note bgr-override-note">
         <label>
@@ -61,7 +61,8 @@
                               OnToggle="() => ToggleExpanded(key)"
                               SoftWidthLimit="SoftWidthLimit"
                               SoftHeightLimit="SoftHeightLimit"
-                              BypassSoftCapSizeLimits="Config.BypassSoftCapSizeLimits" />
+                              BypassSoftCapSizeLimits="Config.BypassSoftCapSizeLimits"
+                              OnGridChanged="StateHasChanged" />
             }
             </div>
         }
