@@ -45,7 +45,7 @@ public record Preset
 {
     public string Name { get; init; } = "";
     
-    public Dictionary<string, BackpackGridPreset> Backpacks { get; } = new();
+    public Dictionary<string, BackpackGridPreset> Backpacks { get; init; } = new();
 }
 
 public record BackpackGridPreset
