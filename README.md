@@ -21,6 +21,9 @@ A "pocket" meaning any backpack that has a split inventory in its container view
 1. Extract the content of the archive
 2. Copy the contents into your SPT installation folder
 
+## Uninstall
+1. Delete the RagingBeardo-BackpackResizer folder from your server mod directory
+
 ## Configuration
 Config file will generate after the server is started. 
 
