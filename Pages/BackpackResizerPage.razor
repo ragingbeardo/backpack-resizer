@@ -42,7 +42,7 @@
     else
     {
         var resizable = FilteredBackpacks().Where(b => !b.IsMultiPocket).ToList();
-        var unconfigurable = FilteredBackpacks().Where(b => b.IsMultiPocket).ToList();
+        var nonResizable = FilteredBackpacks().Where(b => b.IsMultiPocket).ToList();
 
         <h4 class="bgr-section-heading">Resizable Backpacks (@resizable.Count)</h4>
         @if (resizable.Count == 0)
@@ -66,15 +66,15 @@
             </div>
         }
 
-        @if (unconfigurable.Count > 0)
+        @if (nonResizable.Count > 0)
         {
-            <h4 class="bgr-section-heading">Unconfigurable Backpacks</h4>
+            <h4 class="bgr-section-heading">Non-resizable Backpacks</h4>
             <div class="bgr-page-note">
                 These backpacks have multiple separate "pockets" that can't be altered cleanly, so
                 these aren't resizable and are just here to note their existence.
             </div>
             <div class="bgr-pill-list">
-                @foreach (var backpack in unconfigurable)
+                @foreach (var backpack in nonResizable)
                 {
                     <span class="bgr-pill">@backpack.BackpackName</span>
                 }
