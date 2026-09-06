@@ -1,0 +1,28 @@
+## .NET build outputs
+[Bb]in/
+[Oo]bj/
+*.user
+
+## Release artifacts
+ReleaseZip/
+
+## Visual Studio
+.vs/
+*.suo
+*.userosscache
+*.sln.docstates
+
+## JetBrains Rider
+.idea/
+*.sln.iml
+
+## Environment / secrets
+.env
+!.env.example
+
+## OS files
+.DS_Store
+Thumbs.db
+
+## Logs
+*.log
