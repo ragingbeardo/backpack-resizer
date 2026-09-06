@@ -1,11 +1,3 @@
-/* Styles for BackpackResizerPage.razor. Served from this mod's wwwroot at
-   /BackpackResizer/css/backpack-resizer.css (see IModBlazorMetadata.WWWRootUrl in
-   ModMetadata.cs - left null, so the server falls back to the assembly name). Kept as a plain
-   wwwroot file rather than Blazor's scoped .razor.css: this project builds with
-   StaticWebAssetsEnabled=false in Release (see the .csproj), which disables the static-web-assets
-   pipeline that scoped component CSS bundling depends on, but not this mod-specific wwwroot
-   serving path - that's a plain build-time file copy (see the wwwroot ItemGroup in the .csproj). */
-
 .bgr-page { background: #16181c; color: #e8e8ea; padding: 0.5rem; border-radius: 8px; }
 .bgr-header { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.75rem 1rem; margin: -0.5rem -0.5rem 1rem; background: #16181c; color: inherit; border-bottom: 1px solid rgba(255,255,255,0.1); box-shadow: 0 1px 4px rgba(0,0,0,0.25); }
 .bgr-header h3 { margin: 0; color: inherit; }
@@ -40,8 +32,6 @@
 .bgr-grid-table thead th { border-bottom: 1px solid rgba(128,128,128,0.35); font-weight: 600; opacity: 0.8; }
 .bgr-grid-table tbody tr:not(:last-child) { border-bottom: 1px solid rgba(128,128,128,0.15); }
 .bgr-size-input { width: 4.5em; }
-/* The "Unconfigurable Backpacks" list - just a name, no dropdown, since there's nothing to expand
-   into (their grids can never be edited). */
 .bgr-pill-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .bgr-pill { background: rgba(128,128,128,0.12); border: 1px solid rgba(128,128,128,0.3); border-radius: 999px; padding: 0.3rem 0.8rem; font-size: 0.9rem; }
 .bgr-status { opacity: 0.8; font-size: 0.85rem; }
