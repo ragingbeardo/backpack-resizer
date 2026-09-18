@@ -65,7 +65,7 @@ public class BackpackResizerMod(
 
         // group backpacks that are the same base but different color
         var groupedBackpacks = backpacks
-            .GroupBy(c => (BackpackColorParser.SplitBackpackNameAndColor(c.FullName).BaseName, GridLayout: BuildGridLayout(c.Grids)))
+            .GroupBy(c => BackpackColorParser.SplitBackpackNameAndColor(c.FullName).BaseName)
             .Select(g => g.ToList())
             .ToList();
         
@@ -232,7 +232,4 @@ public class BackpackResizerMod(
             },
         };
     }
-    
-    private static string BuildGridLayout(List<Grid> grids) =>
-        string.Join('|', grids.Select(g => $"{g.Name}:{g.Properties?.CellsH}x{g.Properties?.CellsV}"));
 }
