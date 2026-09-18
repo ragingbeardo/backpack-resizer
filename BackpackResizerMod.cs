@@ -27,15 +27,55 @@ public class BackpackResizerMod(
 
     public async Task OnLoadAsync(CancellationToken cancellationToken)
     {
+        await MergeDuplicateNamedFamiliesAsync(cancellationToken);
+
         var discoveredFamilies = DiscoverBackpacks();
         var addedCount = SeedDefaults(discoveredFamilies);
         if (addedCount > 0)
         {
             await BackpackResizerConfigRegistration.SaveConfigToDiskAsync(config, cancellationToken);
-            _log.Info($"found {addedCount} new backpack design(s), added to config.jsonc at their vanilla size.");
+            _log.Info($"found {addedCount} new backpack design(s) and the config has been updated");
         }
 
         ResizeAllBackpacks();
+    }
+
+    // collapse duplicate backpack entries from before grouping removed 'by grid' in favor of just the name itself
+    private async Task MergeDuplicateNamedFamiliesAsync(CancellationToken cancellationToken)
+    {
+        var duplicateGroups = config.Backpacks
+            .GroupBy(kvp => kvp.Value.BackpackName)
+            .Where(g => g.Count() > 1)
+            .ToList();
+
+        var mergedBackpackNames = new List<string>();
+
+        foreach (var group in duplicateGroups)
+        {
+            var survivingBackpackFamily = group.OrderBy(kvp => kvp.Key, StringComparer.Ordinal).First();
+
+            foreach (var duplicate in group.Where(kvp => kvp.Key != survivingBackpackFamily.Key))
+            {
+                survivingBackpackFamily.Value.ItemIds =
+                [
+                    .. survivingBackpackFamily.Value.ItemIds
+                        .Concat(duplicate.Value.ItemIds)
+                        .Distinct()
+                        .OrderBy(id => id, StringComparer.Ordinal)
+                ];
+
+                config.Backpacks.Remove(duplicate.Key);
+            }
+
+            survivingBackpackFamily.Value.Grid = null;
+            mergedBackpackNames.Add(survivingBackpackFamily.Value.BackpackName);
+        }
+
+        if (mergedBackpackNames.Count > 0)
+        {
+            await BackpackResizerConfigRegistration.SaveConfigToDiskAsync(config, cancellationToken);
+            _log.Warning($"duplicate entries were found and merged for: {string.Join(", ", mergedBackpackNames)}. Please reload and save any preset you were using.");
+        }
     }
 
     private readonly record struct Backpack(MongoId Id, string FullName, List<Grid> Grids);
