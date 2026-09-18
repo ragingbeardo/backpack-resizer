@@ -19,14 +19,12 @@ public class BackpackResizerConfigRegistration : IOnDIConstruct
         //   Grid        
         //     Width     - intended backpack width by cell count
         //     Height    - intended backpack height by cell count
-        // Presets       - preset names paired with a list of backpack grid values
-        //   {PresetKey}
-        //     Name      - name of the preset
-        //     Backpacks - backpacks with id as the key and their associated width and height
-        
+        // OriginalValues - every backpack's size as first found on this install. Presets you make or
+        //                  download are separate files in the presets folder.
+
         """;
 
-    private static readonly JsonSerializerOptions SerializerOptions = new()
+    internal static readonly JsonSerializerOptions SerializerOptions = new()
     {
         WriteIndented = true,
         PropertyNameCaseInsensitive = true,
@@ -48,7 +46,6 @@ public class BackpackResizerConfigRegistration : IOnDIConstruct
         if (!File.Exists(configPath))
         {
             var defaultConfig = new ModConfig();
-            defaultConfig.Presets[DefaultPresets.BetterBackpacksPresetKey] = DefaultPresets.BuildBetterBackpacksPreset();
             await SaveConfigToDiskAsync(defaultConfig, ct);
             return defaultConfig;
         }
@@ -71,10 +68,9 @@ public class BackpackResizerConfigRegistration : IOnDIConstruct
         await writer.WriteLineAsync();
     }
     
-    private static string GetConfigPath()
-    {
-        var assemblyDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)
-                           ?? throw new InvalidOperationException("Could not resolve the mod's own directory.");
-        return Path.Combine(assemblyDir, "config.jsonc");
-    }
+    internal static string GetModDirectory() =>
+        Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)
+        ?? throw new InvalidOperationException("Could not resolve the mod's own directory.");
+
+    private static string GetConfigPath() => Path.Combine(GetModDirectory(), "config.jsonc");
 }
