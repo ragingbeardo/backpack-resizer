@@ -16,7 +16,7 @@ public record ModMetadata : IModMetadata, IModBlazorMetadata
     public string Name { get; init; } = "BackpackResizer";
     public string Author { get; init; } = "RagingBeardo";
     public List<string>? Contributors { get; init; }
-    public SemanticVersioning.Version Version { get; init; } = new("1.0.2");
+    public SemanticVersioning.Version Version { get; init; } = new("1.0.3");
     
     public SemanticVersioning.Range SptVersion { get; init; } = new("~4.1.3");
     public List<string>? Incompatibilities { get; init; }
