@@ -6,12 +6,27 @@ if you find a backpack not being discovered by the mod itself and I will look in
 
 ## Features
 - Change the width and height of backpacks that don't have a split inventory grid
-- Save and Load presets for backpack sizes
+- Original backpack sizes saved under a read-only preset when first found  by the mod that can be re-applied at any time
+- User saved presets can be saved and shared with others
 
 ## Presets Included
 - Original Values - this preset will have the original found values for each backpack as it's found by the mod
-- Better Backpacks - this sizes of this mod follow the sizes of the Better Backpacks mod with the inclusion of WTT Content Backport. 
+- Better Backpacks - this sizes of this mod follow the sizes of the Better Backpacks mod from Josh Mate with the inclusion of WTT Content Backport. 
   - content backport not required. any backpack in the preset but not found in the game will be ignored
+
+## Presets Saved by the User
+Every preset you create will have its own file in the `presets` folder
+(`user\mods\RagingBeardo-BackpackResizer\presets`) that you can share with others.
+
+When saving a new preset, only the preset name is required. Author and description are optional. 
+
+The preset file contains the backpacks grouped by their name (i.e. Duffle bag) with the width and height values that will be applied to 
+each item id found in that backpacks group.
+
+### Installing a Preset from Addons
+1. Download the preset file from the Addon's page
+2. Extract and place the preset file into the `presets` folder (`user\mods\RagingBeardo-BackpackResizer\presets`)
+3. Load, Apply, and Save the preset from the UI.
 
 ## Limitations
 Due to how backpacks are handled by the game itself, any backpack that has more than one "pocket" will not be touched by this mod.

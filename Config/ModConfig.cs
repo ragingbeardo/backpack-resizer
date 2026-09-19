@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace BackpackResizer.Config;
 
 public record ModConfig
@@ -19,9 +21,16 @@ public record ModConfig
     public Dictionary<string, BackpackConfig> Backpacks { get; init; } = new();
     
     /// <summary>
-    /// dictionary of preset grid values
+    /// snapshot of every backpack's size the first time it was discovered on this install
     /// </summary>
-    public Dictionary<string, Preset> Presets { get; init; } = new();
+    public Preset OriginalValues { get; set; } = new() { Name = "Original Values" };
+
+    /// <summary>
+    /// old preset format so it can be handled without user having to migrate anything
+    /// </summary>
+    [JsonPropertyName("Presets")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Dictionary<string, LegacyPreset>? LegacyPresets { get; set; }
 }
 
 public record BackpackConfig
@@ -42,6 +51,38 @@ public record BackpackConfig
 }
 
 public record Preset
+{
+    public const int CurrentSchemaVersion = 1;
+
+    public int SchemaVersion { get; init; } = CurrentSchemaVersion;
+
+    public string Name { get; init; } = "";
+
+    public string Author { get; init; } = "";
+
+    public string Description { get; init; } = "";
+
+    public List<PresetBackpack> Backpacks { get; init; } = [];
+}
+
+public record PresetBackpack
+{
+    /// <summary>
+    /// base backpack name
+    /// </summary>
+    public string Name { get; init; } = "";
+
+    public List<string> ItemIds { get; init; } = [];
+
+    public int Width { get; init; }
+
+    public int Height { get; init; }
+}
+
+/// <summary>
+/// Legacy preset format that was used in the config file before presets were moved to their own folder.
+/// </summary>
+public record LegacyPreset
 {
     public string Name { get; init; } = "";
     
