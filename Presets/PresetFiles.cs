@@ -72,11 +72,32 @@ public static partial class PresetFiles
             fileName = $"{slug}-{suffix}{FileExtension}";
         }
 
-        var json = JsonSerializer.Serialize(preset, BackpackResizerConfigRegistration.SerializerOptions);
-        await File.WriteAllTextAsync(Path.Combine(DirectoryPath, fileName), json + Environment.NewLine, ct);
+        await WriteFileAsync(fileName, preset, ct);
         return fileName;
     }
-    
+
+    /// <summary>
+    /// replaces the contents of an existing preset file. Returns false when the file is gone.
+    /// </summary>
+    public static async Task<bool> OverwriteAsync(string fileName, Preset preset, CancellationToken ct)
+    {
+        if (Path.GetFileName(fileName) != fileName
+            || !fileName.EndsWith(FileExtension, StringComparison.OrdinalIgnoreCase)
+            || !File.Exists(Path.Combine(DirectoryPath, fileName)))
+        {
+            return false;
+        }
+
+        await WriteFileAsync(fileName, preset, ct);
+        return true;
+    }
+
+    private static async Task WriteFileAsync(string fileName, Preset preset, CancellationToken ct)
+    {
+        var json = JsonSerializer.Serialize(preset, BackpackResizerConfigRegistration.SerializerOptions);
+        await File.WriteAllTextAsync(Path.Combine(DirectoryPath, fileName), json + Environment.NewLine, ct);
+    }
+
     public static bool Delete(string fileName)
     {
         if (Path.GetFileName(fileName) != fileName || !fileName.EndsWith(FileExtension, StringComparison.OrdinalIgnoreCase))
