@@ -28,7 +28,7 @@ public static class DefaultPresets
     private static Preset BuildBetterBackpacksPreset() => Build(
         name: "Better Backpacks",
         author: "RagingBeardo",
-        description: "Sizes from JoshMate's Better Backpacks mod, plus WTT Content Backport backpacks.",
+        description: "Sizes from JoshMate's Better Backpacks mod. WTT Content Backport backpacks included in preset.",
         entries:
         [
             new Entry("544a5cde4bdc2d39388b456b", "Flyye MBSS backpack (UCP)", 5, 6),
