@@ -84,6 +84,21 @@ public static class PresetMatcher
     ];
 
     /// <summary>
+    /// the entries for updating an existing preset: the current size of every resizable backpack, plus
+    /// the preset's own entries for backpacks this install can't resize or doesn't have
+    /// </summary>
+    public static List<PresetBackpack> Update(Preset existing, IReadOnlyDictionary<string, BackpackConfig> backpacks)
+    {
+        var (matched, unmatched) = Resolve(existing, backpacks);
+        var kept = matched
+            .Where(match => backpacks[match.FamilyKey].Grid is null)
+            .Select(match => match.Entry)
+            .Concat(unmatched);
+
+        return [.. Capture(backpacks), .. kept];
+    }
+
+    /// <summary>
     /// check for existing entry. used for seeding the original values preset
     /// </summary>
     public static bool Covers(Preset preset, BackpackConfig backpack) =>

@@ -67,6 +67,20 @@ public class PresetRepository(ISptLogger<PresetRepository> logger, ModConfig con
     }
 
     /// <summary>
+    /// overwrites the preset's file with the given preset. Only user presets can be updated.
+    /// </summary>
+    public async Task<bool> UpdateAsync(string key, Preset preset, CancellationToken ct = default)
+    {
+        if (Find(key) is not { Source: PresetSource.User } || !await PresetFiles.OverwriteAsync(key, preset, ct))
+        {
+            return false;
+        }
+
+        await ReloadAsync(ct);
+        return true;
+    }
+
+    /// <summary>
     /// deletes the preset's file. Only user presets can be deleted.
     /// </summary>
     public async Task<bool> DeleteAsync(string key, CancellationToken ct = default)

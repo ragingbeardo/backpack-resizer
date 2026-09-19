@@ -7,7 +7,7 @@ if you find a backpack not being discovered by the mod itself and I will look in
 ## Features
 - Change the width and height of backpacks that don't have a split inventory grid
 - Original backpack sizes saved under a read-only preset when first found  by the mod that can be re-applied at any time
-- User saved presets can be saved and shared with others
+- User defined presets that that can be updated and shared with others.
 
 ## Presets Included
 - Original Values - this preset will have the original found values for each backpack as it's found by the mod
@@ -22,6 +22,12 @@ When saving a new preset, only the preset name is required. Author and descripti
 
 The preset file contains the backpacks grouped by their name (i.e. Duffle bag) with the width and height values that will be applied to 
 each item id found in that backpacks group.
+
+### Managing Presets in the UI
+- Load Preset: loads values from a preset where you can either save the config to apply the valuues or update the preset values without applying it.
+- Update Preset: this button is only visible after loading a preset so that the proper preset is updated
+- Delete Preset: this button will delete whatever preset is currently selected regardless of whether it is loaded or not.
+- Save New Preset: save values as a new preset file
 
 ### Installing a Preset from Addons
 1. Download the preset file from the Addon's page

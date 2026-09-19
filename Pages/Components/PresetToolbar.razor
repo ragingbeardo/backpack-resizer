@@ -20,13 +20,17 @@
         <option value="">Select a preset...</option>
         @foreach (var entry in Repository.Presets)
         {
-            <option value="@entry.Key">@DisplayName(entry)</option>
+            <option value="@entry.Key">@entry.Preset.Name</option>
         }
     </select>
     <button type="button" class="bgr-load-preset-btn bgr-btn-white" disabled="@(SelectedEntry is null)" @onclick="LoadSelectedPreset">Load Preset Values</button>
 
     @if (SelectedEntry is { Source: PresetSource.User })
     {
+        if (_presetLoaded)
+        {
+            <button type="button" class="bgr-load-preset-btn bgr-btn-green" @onclick="() => _confirmingUpdate = true">Update Preset</button>
+        }
         <button type="button" class="bgr-load-preset-btn bgr-btn-red" @onclick="() => _confirmingDelete = true">Delete Preset</button>
     }
 
@@ -34,14 +38,28 @@
 </div>
 
 @* outside the flex toolbar so it can be content-width on its own row *@
-@if (SelectedEntry is { } selected && (selected.Preset.Author.Length > 0 || selected.Preset.Description.Length > 0))
+@if (SelectedEntry is { } selected)
 {
     <div class="bgr-preset-info">
+        <div>
+            <strong><u>Loaded:</u></strong>&nbsp;
+            @if (_presetLoaded)
+            {
+                <span class="bgr-loaded-yes" title="This preset's values were loaded">&#10004;</span>
+            }
+            else
+            {
+                <span class="bgr-loaded-no" title="This preset's values haven't been loaded">&#10008;</span>
+            }
+        </div>
         @if (selected.Preset.Author.Length > 0)
         {
-            <strong><u>Selected Preset Description:</u></strong>@:&nbsp;
+            <div><strong><u>Author:</u></strong>&nbsp;@selected.Preset.Author</div>
         }
-        @selected.Preset.Description
+        @if (selected.Preset.Description.Length > 0)
+        {
+            <div><strong><u>Selected Preset Description:</u></strong>&nbsp;@selected.Preset.Description</div>
+        }
     </div>
 }
 
@@ -77,6 +95,22 @@
     </div>
 }
 
+@if (_confirmingUpdate && SelectedEntry is { Source: PresetSource.User } presetToUpdate)
+{
+    <div class="bgr-modal-backdrop">
+        <div class="bgr-modal" role="dialog" aria-modal="true" aria-labelledby="bgr-update-preset-title">
+            <h4 id="bgr-update-preset-title" class="bgr-modal-title">Update Preset</h4>
+
+            <p class="bgr-modal-text">Overwrite '@presetToUpdate.Preset.Name' with the current backpack sizes? This can't be undone.</p>
+
+            <div class="bgr-modal-actions">
+                <button type="button" class="bgr-load-preset-btn bgr-btn-green" @onclick="UpdateSelectedPreset">Update</button>
+                <button type="button" class="bgr-load-preset-btn bgr-btn-red" @onclick="() => _confirmingUpdate = false">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
+
 @if (_confirmingDelete && SelectedEntry is { Source: PresetSource.User } presetToDelete)
 {
     <div class="bgr-modal-backdrop">
@@ -106,6 +140,10 @@
 
     private string _selectedPresetKey = "";
     private bool _confirmingDelete;
+    private bool _confirmingUpdate;
+
+    // true once the selected preset's values were loaded; switching presets clears it
+    private bool _presetLoaded;
     private bool _showSavePresetForm;
     private string _newPresetName = "";
     private string _newPresetAuthor = "";
@@ -115,7 +153,8 @@
 
     private ColorLogger<PresetToolbar>? _log;
 
-    // a pending delete confirmation belongs to the preset it was asked about, not the next one picked
+    // a pending delete/update confirmation, and the loaded state that unlocks update, belong to the preset
+    // they were made for, not the next one picked
     private string SelectedPresetKey
     {
         get => _selectedPresetKey;
@@ -128,6 +167,8 @@
 
             _selectedPresetKey = value;
             _confirmingDelete = false;
+            _confirmingUpdate = false;
+            _presetLoaded = false;
         }
     }
 
@@ -139,9 +180,6 @@
         _log = new ColorLogger<PresetToolbar>(Logger, Config);
         await Repository.ReloadAsync();
     }
-
-    private static string DisplayName(PresetEntry entry) =>
-        entry.Preset.Author.Length > 0 ? $"{entry.Preset.Name} (by {entry.Preset.Author})" : entry.Preset.Name;
 
     private Task OnFilterInput(ChangeEventArgs e) => FilterTextChanged.InvokeAsync(e.Value?.ToString() ?? "");
 
@@ -173,6 +211,8 @@
         {
             _log!.Debug($"preset '{preset.Name}' has an entry for '{entry.Name}' [{string.Join(", ", entry.ItemIds)}] that doesn't match any backpack on this install - skipped.");
         }
+
+        _presetLoaded = true;
 
         var unmatchedNote = unmatched.Count > 0 ? $", {unmatched.Count} not found on this install" : "";
         await OnStatusMessage.InvokeAsync($"Loaded preset '{preset.Name}' onto {appliedCount} backpack(s){unmatchedNote} - click Save to apply.");
@@ -215,6 +255,36 @@
 
         CancelSavePreset();
         await OnStatusMessage.InvokeAsync($"Saved preset '{name}' as presets/{SelectedPresetKey}.");
+    }
+
+    private async Task UpdateSelectedPreset()
+    {
+        _confirmingUpdate = false;
+
+        if (SelectedEntry is not { Source: PresetSource.User } entry)
+        {
+            return;
+        }
+
+        var updated = entry.Preset with { Backpacks = PresetMatcher.Update(entry.Preset, Config.Backpacks) };
+
+        try
+        {
+            if (!await Repository.UpdateAsync(entry.Key, updated))
+            {
+                await OnStatusMessage.InvokeAsync($"Preset '{entry.Preset.Name}' is gone, so it couldn't be updated.");
+                SelectedPresetKey = "";
+                return;
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            _log!.Error($"couldn't update preset file '{entry.Key}'.", ex);
+            await OnStatusMessage.InvokeAsync($"Couldn't update preset '{entry.Preset.Name}': {ex.Message}");
+            return;
+        }
+
+        await OnStatusMessage.InvokeAsync($"Updated preset '{entry.Preset.Name}' (presets/{entry.Key}).");
     }
 
     private async Task DeleteSelectedPreset()
