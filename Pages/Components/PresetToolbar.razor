@@ -1,8 +1,10 @@
 @namespace BackpackResizer.Pages.Components
 @using BackpackResizer.Config
+@using BackpackResizer.Presets
 @using BackpackResizer.Utility
 @using SPTarkov.Common.Models.Logging
 @inject ISptLogger<PresetToolbar> Logger
+@inject PresetRepository Repository
 
 <div class="bgr-toolbar">
     <label>
@@ -14,24 +16,51 @@
         Debug Logging
     </label>
     <input class="bgr-filter" type="text" placeholder="Filter backpacks..." value="@FilterText" @oninput="OnFilterInput" />
-    <select class="bgr-preset-select" @bind="_selectedPresetKey">
+    <select class="bgr-preset-select" @bind="SelectedPresetKey">
         <option value="">Select a preset...</option>
-        @foreach (var (presetKey, preset) in Config.Presets)
+        @foreach (var entry in Repository.Presets)
         {
-            <option value="@presetKey">@preset.Name</option>
+            <option value="@entry.Key">@DisplayName(entry)</option>
         }
     </select>
-    <button type="button" class="bgr-load-preset-btn bgr-btn-white" disabled="@string.IsNullOrEmpty(_selectedPresetKey)" @onclick="LoadSelectedPreset">Load Preset Values</button>
+    <button type="button" class="bgr-load-preset-btn bgr-btn-white" disabled="@(SelectedEntry is null)" @onclick="LoadSelectedPreset">Load Preset Values</button>
+
+    @if (SelectedEntry is { Source: PresetSource.User } selectedUserPreset)
+    {
+        @if (_confirmingDelete)
+        {
+            <span>Delete '@selectedUserPreset.Preset.Name' for good?</span>
+            <button type="button" class="bgr-load-preset-btn bgr-btn-red" @onclick="DeleteSelectedPreset">Delete</button>
+            <button type="button" class="bgr-load-preset-btn" @onclick="() => _confirmingDelete = false">Keep</button>
+        }
+        else
+        {
+            <button type="button" class="bgr-load-preset-btn" @onclick="() => _confirmingDelete = true">Delete Preset</button>
+        }
+    }
 
     @if (_showSavePresetForm)
     {
         <input class="bgr-filter" type="text" placeholder="New preset name..." @bind="_newPresetName" @bind:event="oninput" />
+        <input class="bgr-filter" type="text" placeholder="Author (optional)" @bind="_newPresetAuthor" @bind:event="oninput" />
+        <input class="bgr-filter" type="text" placeholder="Description (optional)" @bind="_newPresetDescription" @bind:event="oninput" />
         <button type="button" class="bgr-load-preset-btn" disabled="@string.IsNullOrWhiteSpace(_newPresetName)" @onclick="SaveAsNewPreset">Create</button>
         <button type="button" class="bgr-load-preset-btn" @onclick="CancelSavePreset">Cancel</button>
     }
     else
     {
         <button type="button" class="bgr-load-preset-btn bgr-btn-blue" @onclick="() => _showSavePresetForm = true">Save New Preset</button>
+    }
+
+    @if (SelectedEntry is { } selected && (selected.Preset.Author.Length > 0 || selected.Preset.Description.Length > 0))
+    {
+        <div class="bgr-preset-info">
+            @if (selected.Preset.Author.Length > 0)
+            {
+                <strong>By @selected.Preset.Author</strong>
+            }
+            @selected.Preset.Description
+        </div>
     }
 </div>
 
@@ -47,51 +76,75 @@
     [Parameter] public EventCallback OnConfigChanged { get; set; }
 
     private string _selectedPresetKey = "";
+    private bool _confirmingDelete;
     private bool _showSavePresetForm;
     private string _newPresetName = "";
+    private string _newPresetAuthor = "";
+    private string _newPresetDescription = "";
 
     private ColorLogger<PresetToolbar>? _log;
 
-    protected override void OnInitialized() => _log = new ColorLogger<PresetToolbar>(Logger, Config);
+    // a pending delete confirmation belongs to the preset it was asked about, not the next one picked
+    private string SelectedPresetKey
+    {
+        get => _selectedPresetKey;
+        set
+        {
+            if (_selectedPresetKey == value)
+            {
+                return;
+            }
+
+            _selectedPresetKey = value;
+            _confirmingDelete = false;
+        }
+    }
+
+    private PresetEntry? SelectedEntry => string.IsNullOrEmpty(_selectedPresetKey) ? null : Repository.Find(_selectedPresetKey);
+
+    // rescans the presets folder each time the page opens so dropped-in files appear on refresh
+    protected override async Task OnInitializedAsync()
+    {
+        _log = new ColorLogger<PresetToolbar>(Logger, Config);
+        await Repository.ReloadAsync();
+    }
+
+    private static string DisplayName(PresetEntry entry) =>
+        entry.Preset.Author.Length > 0 ? $"{entry.Preset.Name} (by {entry.Preset.Author})" : entry.Preset.Name;
 
     private Task OnFilterInput(ChangeEventArgs e) => FilterTextChanged.InvokeAsync(e.Value?.ToString() ?? "");
 
     private async Task LoadSelectedPreset()
     {
-        if (string.IsNullOrEmpty(_selectedPresetKey) || !Config.Presets.TryGetValue(_selectedPresetKey, out var preset))
+        if (SelectedEntry is not { Preset: var preset })
         {
             return;
         }
 
+        var (matched, unmatched) = PresetMatcher.Resolve(preset, Config.Backpacks);
         var appliedCount = 0;
 
-        foreach (var (backpackKey, backpackOverride) in Config.Backpacks)
+        foreach (var (backpackKey, entry) in matched)
         {
-            if (backpackOverride.Grid is not { } gridOverride)
+            var backpack = Config.Backpacks[backpackKey];
+            if (backpack.Grid is not { } gridOverride)
             {
+                _log!.Debug($"preset '{preset.Name}' has an entry for '{backpack.BackpackName}' ({backpackKey}) but it can't be resized - skipped.");
                 continue;
             }
 
-            if (!preset.Backpacks.TryGetValue(backpackKey, out var size))
-            {
-                _log!.Debug($"preset '{preset.Name}' has no entry for '{backpackOverride.BackpackName}' ({backpackKey}) - left at its current size.");
-                continue;
-            }
-
-            gridOverride.Width = size.Width;
-            gridOverride.Height = size.Height;
+            gridOverride.Width = entry.Width;
+            gridOverride.Height = entry.Height;
             appliedCount++;
         }
 
-        foreach (var backpackKey in preset.Backpacks.Keys)
+        foreach (var entry in unmatched)
         {
-            if (!Config.Backpacks.ContainsKey(backpackKey))
-            {
-                _log!.Debug($"preset '{preset.Name}' has an entry ({backpackKey}) that doesn't match any backpack on this install - skipped.");
-            }
+            _log!.Debug($"preset '{preset.Name}' has an entry for '{entry.Name}' [{string.Join(", ", entry.ItemIds)}] that doesn't match any backpack on this install - skipped.");
         }
 
-        await OnStatusMessage.InvokeAsync($"Loaded preset '{preset.Name}' onto {appliedCount} backpack(s) - click Save to apply.");
+        var unmatchedNote = unmatched.Count > 0 ? $", {unmatched.Count} not found on this install" : "";
+        await OnStatusMessage.InvokeAsync($"Loaded preset '{preset.Name}' onto {appliedCount} backpack(s){unmatchedNote} - click Save to apply.");
     }
 
     private async Task SaveAsNewPreset()
@@ -102,29 +155,69 @@
             return;
         }
 
-        var preset = new Preset { Name = name };
-
-        foreach (var (backpackKey, backpackOverride) in Config.Backpacks)
+        var preset = new Preset
         {
-            if (backpackOverride.Grid is not { } gridOverride)
-            {
-                continue;
-            }
+            Name = name,
+            Author = _newPresetAuthor.Trim(),
+            Description = _newPresetDescription.Trim(),
+            Backpacks = PresetMatcher.Capture(Config.Backpacks),
+        };
 
-            preset.Backpacks[backpackKey] = new BackpackGridPreset { Width = gridOverride.Width, Height = gridOverride.Height };
+        if (preset.Backpacks.Count == 0)
+        {
+            await OnStatusMessage.InvokeAsync("There are no resizable backpacks to save into a preset yet.");
+            return;
         }
 
-        var presetKey = $"preset-{Guid.NewGuid():N}";
-        Config.Presets[presetKey] = preset;
-        _selectedPresetKey = presetKey;
+        try
+        {
+            SelectedPresetKey = await Repository.CreateAsync(preset);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            _log!.Error($"couldn't write preset '{name}' to the presets folder.", ex);
+            await OnStatusMessage.InvokeAsync($"Couldn't save preset '{name}': {ex.Message}");
+            return;
+        }
 
         CancelSavePreset();
-        await OnStatusMessage.InvokeAsync($"Created preset '{name}' from the current values - click Save to persist it.");
+        await OnStatusMessage.InvokeAsync($"Saved preset '{name}' as presets/{SelectedPresetKey}.");
+    }
+
+    private async Task DeleteSelectedPreset()
+    {
+        _confirmingDelete = false;
+
+        if (SelectedEntry is not { Source: PresetSource.User } entry)
+        {
+            return;
+        }
+
+        try
+        {
+            if (!await Repository.DeleteAsync(entry.Key))
+            {
+                await OnStatusMessage.InvokeAsync($"Preset '{entry.Preset.Name}' was already gone.");
+                SelectedPresetKey = "";
+                return;
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            _log!.Error($"couldn't delete preset file '{entry.Key}'.", ex);
+            await OnStatusMessage.InvokeAsync($"Couldn't delete preset '{entry.Preset.Name}': {ex.Message}");
+            return;
+        }
+
+        SelectedPresetKey = "";
+        await OnStatusMessage.InvokeAsync($"Deleted preset '{entry.Preset.Name}'.");
     }
 
     private void CancelSavePreset()
     {
         _showSavePresetForm = false;
         _newPresetName = "";
+        _newPresetAuthor = "";
+        _newPresetDescription = "";
     }
 }
