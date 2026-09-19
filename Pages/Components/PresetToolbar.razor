@@ -38,9 +38,20 @@
 </div>
 
 @* outside the flex toolbar so it can be content-width on its own row *@
-@if (SelectedEntry is { } selected && (selected.Preset.Author.Length > 0 || selected.Preset.Description.Length > 0))
+@if (SelectedEntry is { } selected)
 {
     <div class="bgr-preset-info">
+        <div>
+            <strong><u>Loaded:</u></strong>&nbsp;
+            @if (_presetLoaded)
+            {
+                <span class="bgr-loaded-yes" title="This preset's values were loaded">&#10004;</span>
+            }
+            else
+            {
+                <span class="bgr-loaded-no" title="This preset's values haven't been loaded">&#10008;</span>
+            }
+        </div>
         @if (selected.Preset.Author.Length > 0)
         {
             <div><strong><u>Author:</u></strong>&nbsp;@selected.Preset.Author</div>
