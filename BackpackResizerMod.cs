@@ -7,8 +7,8 @@ using SPTarkov.Server.Core.Models.Enums;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Spt.Tables;
 using BackpackResizer.Config;
+using BackpackResizer.Presets;
 using BackpackResizer.Utility;
-using Preset = BackpackResizer.Config.Preset;
 
 namespace BackpackResizer;
 
@@ -27,14 +27,18 @@ public class BackpackResizerMod(
 
     public async Task OnLoadAsync(CancellationToken cancellationToken)
     {
+        await PresetMigration.MigrateAsync(config, _log, cancellationToken);
         await MergeDuplicateNamedFamiliesAsync(cancellationToken);
 
         var discoveredFamilies = DiscoverBackpacks();
-        var addedCount = SeedDefaults(discoveredFamilies);
-        if (addedCount > 0)
+        var (addedCount, originalValuesChanged) = SeedDefaults(discoveredFamilies);
+        if (addedCount > 0 || originalValuesChanged)
         {
             await BackpackResizerConfigRegistration.SaveConfigToDiskAsync(config, cancellationToken);
-            _log.Info($"found {addedCount} new backpack design(s) and the config has been updated");
+            if (addedCount > 0)
+            {
+                _log.Info($"found {addedCount} new backpack design(s) and the config has been updated");
+            }
         }
 
         ResizeAllBackpacks();
@@ -141,14 +145,10 @@ public class BackpackResizerMod(
         return discoveredFamilies;
     }
     
-    private int SeedDefaults(List<DiscoveredBackpackFamily> discoveredFamilies)
+    private (int AddedCount, bool OriginalValuesChanged) SeedDefaults(List<DiscoveredBackpackFamily> discoveredFamilies)
     {
-        if (!config.Presets.TryGetValue(ModConfig.OriginalValuesPresetKey, out var originalValuesPreset))
-        {
-            originalValuesPreset = new Preset { Name = "Original Values" };
-            config.Presets[ModConfig.OriginalValuesPresetKey] = originalValuesPreset;
-        }
-
+        var originalValuesPreset = config.OriginalValues;
+        var originalValuesChanged = false;
         var addedCount = 0;
 
         foreach (var (familyKey, group) in discoveredFamilies)
@@ -178,10 +178,18 @@ public class BackpackResizerMod(
 
             // A snapshot, taken once, of this grid's size the first time it's ever seen - never
             // touched again even if Grid.Width/Height above are later edited by the user.
-            originalValuesPreset.Backpacks.TryAdd(familyKey, new BackpackGridPreset { Width = width, Height = height });
+            if (PresetMatcher.Covers(originalValuesPreset, backpackOverride)) continue;
+            originalValuesPreset.Backpacks.Add(new PresetBackpack
+            {
+                Name = backpackOverride.BackpackName,
+                ItemIds = [.. backpackOverride.ItemIds],
+                Width = width,
+                Height = height,
+            });
+            originalValuesChanged = true;
         }
 
-        return addedCount;
+        return (addedCount, originalValuesChanged);
     }
     
     public void ResizeAllBackpacks()
