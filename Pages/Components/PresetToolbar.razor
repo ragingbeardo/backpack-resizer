@@ -39,30 +39,51 @@
         }
     }
 
-    @if (_showSavePresetForm)
-    {
-        <input class="bgr-filter" type="text" placeholder="New preset name..." @bind="_newPresetName" @bind:event="oninput" />
-        <input class="bgr-filter" type="text" placeholder="Author (optional)" @bind="_newPresetAuthor" @bind:event="oninput" />
-        <input class="bgr-filter" type="text" placeholder="Description (optional)" @bind="_newPresetDescription" @bind:event="oninput" />
-        <button type="button" class="bgr-load-preset-btn" disabled="@string.IsNullOrWhiteSpace(_newPresetName)" @onclick="SaveAsNewPreset">Create</button>
-        <button type="button" class="bgr-load-preset-btn" @onclick="CancelSavePreset">Cancel</button>
-    }
-    else
-    {
-        <button type="button" class="bgr-load-preset-btn bgr-btn-blue" @onclick="() => _showSavePresetForm = true">Save New Preset</button>
-    }
+    <button type="button" class="bgr-load-preset-btn bgr-btn-blue" @onclick="() => _showSavePresetForm = true">Save New Preset</button>
 
     @if (SelectedEntry is { } selected && (selected.Preset.Author.Length > 0 || selected.Preset.Description.Length > 0))
     {
         <div class="bgr-preset-info">
             @if (selected.Preset.Author.Length > 0)
             {
-                <strong>By @selected.Preset.Author</strong>
+                <strong>Selected Preset Description: </strong>
             }
             @selected.Preset.Description
         </div>
     }
 </div>
+
+@if (_showSavePresetForm)
+{
+    <div class="bgr-modal-backdrop">
+        <div class="bgr-modal" role="dialog" aria-modal="true" aria-labelledby="bgr-save-preset-title">
+            <h4 id="bgr-save-preset-title" class="bgr-modal-title">Save New Preset</h4>
+
+            <label class="bgr-modal-field">
+                Name
+                <input type="text" placeholder="New preset name..." @bind="_newPresetName" @bind:event="oninput" />
+            </label>
+            <label class="bgr-modal-field">
+                Author (optional)
+                <input type="text" @bind="_newPresetAuthor" @bind:event="oninput" />
+            </label>
+            <label class="bgr-modal-field">
+                Description (optional)
+                <textarea rows="3" @bind="_newPresetDescription" @bind:event="oninput"></textarea>
+            </label>
+
+            @if (_saveError is not null)
+            {
+                <div class="bgr-modal-error">@_saveError</div>
+            }
+
+            <div class="bgr-modal-actions">
+                <button type="button" class="bgr-load-preset-btn bgr-btn-green" disabled="@string.IsNullOrWhiteSpace(_newPresetName)" @onclick="SaveAsNewPreset">Create</button>
+                <button type="button" class="bgr-load-preset-btn bgr-btn-red" @onclick="CancelSavePreset">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
     [Parameter, EditorRequired] public ModConfig Config { get; set; } = null!;
@@ -81,6 +102,8 @@
     private string _newPresetName = "";
     private string _newPresetAuthor = "";
     private string _newPresetDescription = "";
+    
+    private string? _saveError;
 
     private ColorLogger<PresetToolbar>? _log;
 
@@ -155,6 +178,8 @@
             return;
         }
 
+        _saveError = null;
+
         var preset = new Preset
         {
             Name = name,
@@ -165,7 +190,7 @@
 
         if (preset.Backpacks.Count == 0)
         {
-            await OnStatusMessage.InvokeAsync("There are no resizable backpacks to save into a preset yet.");
+            _saveError = "There are no resizable backpacks to save into a preset yet.";
             return;
         }
 
@@ -176,7 +201,7 @@
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             _log!.Error($"couldn't write preset '{name}' to the presets folder.", ex);
-            await OnStatusMessage.InvokeAsync($"Couldn't save preset '{name}': {ex.Message}");
+            _saveError = $"Couldn't save preset '{name}': {ex.Message}";
             return;
         }
 
@@ -219,5 +244,6 @@
         _newPresetName = "";
         _newPresetAuthor = "";
         _newPresetDescription = "";
+        _saveError = null;
     }
 }
