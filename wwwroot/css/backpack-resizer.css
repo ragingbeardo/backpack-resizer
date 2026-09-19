@@ -10,6 +10,9 @@
 .bgr-btn-white:hover:not(:disabled) { background: #eaeaea; }
 .bgr-btn-blue { background: #1565c0; color: white; border: 1px solid transparent; border-radius: 4px; font-weight: 600; }
 .bgr-btn-blue:hover:not(:disabled) { background: #114e94; }
+.bgr-btn-red { background: #c62828; color: white; border: 1px solid transparent; border-radius: 4px; font-weight: 600; }
+.bgr-btn-red:hover:not(:disabled) { background: #9e2020; }
+.bgr-preset-info { flex-basis: 100%; opacity: 0.8; font-size: 0.9rem; }
 /* Starts at 1 column on a narrow window, widens to 2 then 3 as the window has room - keeps card
    width from ballooning out (and the name/badges from drifting far from the expanded controls)
    on an ultrawide or fullscreened monitor. */
