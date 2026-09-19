@@ -14,15 +14,18 @@ if you find a backpack not being discovered by the mod itself and I will look in
   - content backport not required. any backpack in the preset but not found in the game will be ignored
 
 ## Presets Saved by the User
-> **1.1.0 PRESET MIGRATION SUPPORT**: To simplify the experience, on the first run after updating to `1.1.0`, the mod will 
-> automatically migrate any presets you previously saved into the new preset file format and clean up the config file of 
-> the now stale preset info. 
-> 
-> UNLESS OTHERWISE NOTED, CONSIDER THIS ONLY SUPPORT WHEN UPDATING FROM `1.0.X` TO `1.1.x.` GOING FROM `1.0.X` TO ANYTHING 
-> `1.2.X` OR HIGHER SHOULD CONSIDER THIS UNSUPPORTED AND SHOULD DO A FRESH INSTALLATION.
+Every preset you create will have its own file in the `presets` folder
+(`user\mods\RagingBeardo-BackpackResizer\presets`) that you can share with others.
 
-Every preset you create is its own file in the `presets` folder
-(`mods/RagingBeardo-BackpackResizer/presets`).
+When saving a new preset, only the preset name is required. Author and description are optional. 
+
+The preset file contains the backpacks grouped by their name (i.e. Duffle bag) with the width and height values that will be applied to 
+each item id found in that backpacks group.
+
+### Installing a Preset from Addons
+1. Download the preset file from the Addon's page
+2. Extract and place the preset file into the `presets` folder (`\user\mods\RagingBeardo-BackpackResizer\presets`)
+3. Load, Apply, and Save the preset from the UI.
 
 ## Limitations
 Due to how backpacks are handled by the game itself, any backpack that has more than one "pocket" will not be touched by this mod.
