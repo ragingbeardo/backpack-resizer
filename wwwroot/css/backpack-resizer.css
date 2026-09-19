@@ -1,4 +1,7 @@
-.bgr-page { background: #16181c; color: #e8e8ea; padding: 0.5rem; border-radius: 8px; }
+/* The card-inverse pair is the per-channel (255 - x) inverse of a backpack name header: its background is
+   #1f2024 (page bg with .bgr-card-header's 8% gray wash on top) and its text is the page's #e8e8ea. If either
+   changes, update these to match. */
+.bgr-page { --bgr-card-bg-inverse: #e0dfdb; --bgr-card-fg-inverse: #171715; background: #16181c; color: #e8e8ea; padding: 0.5rem; border-radius: 8px; }
 .bgr-header { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.75rem 1rem; margin: -0.5rem -0.5rem 1rem; background: #16181c; color: inherit; border-bottom: 1px solid rgba(255,255,255,0.1); box-shadow: 0 1px 4px rgba(0,0,0,0.25); }
 .bgr-header h3 { margin: 0; color: inherit; }
 .bgr-header-actions { display: flex; align-items: center; gap: 0.75rem; }
@@ -23,7 +26,7 @@
 .bgr-modal-field input, .bgr-modal-field textarea { padding: 0.4rem 0.6rem; font: inherit; resize: vertical; }
 .bgr-modal-error { margin-bottom: 0.9rem; padding: 0.5rem 0.7rem; background: rgba(198,40,40,0.2); border: 1px solid #c62828; border-radius: 4px; font-size: 0.9rem; }
 .bgr-modal-actions { display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 0.4rem; }
-.bgr-preset-info { flex-basis: 100%; opacity: 0.8; font-size: 0.9rem; }
+.bgr-preset-info { width: fit-content; max-width: 100%; box-sizing: border-box; margin-bottom: 1rem; padding: 0.4rem 0.7rem; background: var(--bgr-card-bg-inverse); color: var(--bgr-card-fg-inverse); border-radius: 4px; font-size: 0.9rem; }
 /* Starts at 1 column on a narrow window, widens to 2 then 3 as the window has room - keeps card
    width from ballooning out (and the name/badges from drifting far from the expanded controls)
    on an ultrawide or fullscreened monitor. */
@@ -38,7 +41,7 @@
 .bgr-name { font-weight: 600; flex: 1 1 auto; }
 .bgr-section-heading { margin: 1.2rem 0 0.6rem; }
 .bgr-section-heading:first-of-type { margin-top: 0; }
-.bgr-page-note { background: #ffcc00; color: #1a1a1a; border-radius: 6px; padding: 0.6rem 0.9rem; margin-bottom: 1rem; font-size: 0.9rem; }
+.bgr-page-note { width: fit-content; max-width: 100%; background: #ffcc00; color: #1a1a1a; border-radius: 6px; padding: 0.6rem 0.9rem; margin-bottom: 1rem; font-size: 0.9rem; }
 .bgr-override-note label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 600; }
 .bgr-card-body { padding: 0.75rem 0.9rem 0.9rem; }
 .bgr-grid-table { width: 100%; border-collapse: collapse; }

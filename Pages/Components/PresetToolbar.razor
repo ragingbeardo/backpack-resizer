@@ -31,18 +31,19 @@
     }
 
     <button type="button" class="bgr-load-preset-btn bgr-btn-blue" @onclick="() => _showSavePresetForm = true">Save New Preset</button>
-
-    @if (SelectedEntry is { } selected && (selected.Preset.Author.Length > 0 || selected.Preset.Description.Length > 0))
-    {
-        <div class="bgr-preset-info">
-            @if (selected.Preset.Author.Length > 0)
-            {
-                <strong>Selected Preset Description: </strong>
-            }
-            @selected.Preset.Description
-        </div>
-    }
 </div>
+
+@* outside the flex toolbar so it can be content-width on its own row *@
+@if (SelectedEntry is { } selected && (selected.Preset.Author.Length > 0 || selected.Preset.Description.Length > 0))
+{
+    <div class="bgr-preset-info">
+        @if (selected.Preset.Author.Length > 0)
+        {
+            <strong><u>Selected Preset Description:</u></strong>@:&nbsp;
+        }
+        @selected.Preset.Description
+    </div>
+}
 
 @if (_showSavePresetForm)
 {
