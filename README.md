@@ -13,6 +13,17 @@ if you find a backpack not being discovered by the mod itself and I will look in
 - Better Backpacks - this sizes of this mod follow the sizes of the Better Backpacks mod with the inclusion of WTT Content Backport. 
   - content backport not required. any backpack in the preset but not found in the game will be ignored
 
+## Presets Saved by the User
+> **1.1.0 PRESET MIGRATION SUPPORT**: To simplify the experience, on the first run after updating to `1.1.0`, the mod will 
+> automatically migrate any presets you previously saved into the new preset file format and clean up the config file of 
+> the now stale preset info. 
+> 
+> UNLESS OTHERWISE NOTED, CONSIDER THIS ONLY SUPPORT WHEN UPDATING FROM `1.0.X` TO `1.1.x.` GOING FROM `1.0.X` TO ANYTHING 
+> `1.2.X` OR HIGHER SHOULD CONSIDER THIS UNSUPPORTED AND SHOULD DO A FRESH INSTALLATION.
+
+Every preset you create is its own file in the `presets` folder
+(`mods/RagingBeardo-BackpackResizer/presets`).
+
 ## Limitations
 Due to how backpacks are handled by the game itself, any backpack that has more than one "pocket" will not be touched by this mod.
 A "pocket" meaning any backpack that has a split inventory in its container view.
