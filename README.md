@@ -6,11 +6,12 @@ if you find a backpack not being discovered by the mod itself and I will look in
 
 ## Features
 - Change the width and height of backpacks that don't have a split inventory grid
-- Save and Load presets for backpack sizes
+- Original backpack sizes saved under a read-only preset when first found  by the mod that can be re-applied at any time
+- User saved presets can be saved and shared with others
 
 ## Presets Included
 - Original Values - this preset will have the original found values for each backpack as it's found by the mod
-- Better Backpacks - this sizes of this mod follow the sizes of the Better Backpacks mod with the inclusion of WTT Content Backport. 
+- Better Backpacks - this sizes of this mod follow the sizes of the Better Backpacks mod from Josh Mate with the inclusion of WTT Content Backport. 
   - content backport not required. any backpack in the preset but not found in the game will be ignored
 
 ## Presets Saved by the User
