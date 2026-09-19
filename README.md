@@ -24,7 +24,7 @@ each item id found in that backpacks group.
 
 ### Installing a Preset from Addons
 1. Download the preset file from the Addon's page
-2. Extract and place the preset file into the `presets` folder (`\user\mods\RagingBeardo-BackpackResizer\presets`)
+2. Extract and place the preset file into the `presets` folder (`user\mods\RagingBeardo-BackpackResizer\presets`)
 3. Load, Apply, and Save the preset from the UI.
 
 ## Limitations
