@@ -25,18 +25,9 @@
     </select>
     <button type="button" class="bgr-load-preset-btn bgr-btn-white" disabled="@(SelectedEntry is null)" @onclick="LoadSelectedPreset">Load Preset Values</button>
 
-    @if (SelectedEntry is { Source: PresetSource.User } selectedUserPreset)
+    @if (SelectedEntry is { Source: PresetSource.User })
     {
-        @if (_confirmingDelete)
-        {
-            <span>Delete '@selectedUserPreset.Preset.Name' for good?</span>
-            <button type="button" class="bgr-load-preset-btn bgr-btn-red" @onclick="DeleteSelectedPreset">Delete</button>
-            <button type="button" class="bgr-load-preset-btn" @onclick="() => _confirmingDelete = false">Keep</button>
-        }
-        else
-        {
-            <button type="button" class="bgr-load-preset-btn bgr-btn-red" @onclick="() => _confirmingDelete = true">Delete Preset</button>
-        }
+        <button type="button" class="bgr-load-preset-btn bgr-btn-red" @onclick="() => _confirmingDelete = true">Delete Preset</button>
     }
 
     <button type="button" class="bgr-load-preset-btn bgr-btn-blue" @onclick="() => _showSavePresetForm = true">Save New Preset</button>
@@ -80,6 +71,22 @@
             <div class="bgr-modal-actions">
                 <button type="button" class="bgr-load-preset-btn bgr-btn-green" disabled="@string.IsNullOrWhiteSpace(_newPresetName)" @onclick="SaveAsNewPreset">Create</button>
                 <button type="button" class="bgr-load-preset-btn bgr-btn-red" @onclick="CancelSavePreset">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_confirmingDelete && SelectedEntry is { Source: PresetSource.User } presetToDelete)
+{
+    <div class="bgr-modal-backdrop">
+        <div class="bgr-modal" role="dialog" aria-modal="true" aria-labelledby="bgr-delete-preset-title">
+            <h4 id="bgr-delete-preset-title" class="bgr-modal-title">Delete Preset</h4>
+
+            <p class="bgr-modal-text">Delete '@presetToDelete.Preset.Name'? This can't be undone.</p>
+
+            <div class="bgr-modal-actions">
+                <button type="button" class="bgr-load-preset-btn bgr-btn-red" @onclick="DeleteSelectedPreset">Delete</button>
+                <button type="button" class="bgr-load-preset-btn bgr-btn-white" @onclick="() => _confirmingDelete = false">Cancel</button>
             </div>
         </div>
     </div>
